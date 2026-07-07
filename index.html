@@ -1,133 +1,1099 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Minha Refeição — Contador de Calorias TACO</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ficha — Contador Nutricional TACO Expandido</title>
+<meta name="color-scheme" content="light dark" />
 
-  <!-- Tailwind CSS via CDN (sem build step) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Customizações que o Tailwind CDN não cobre -->
-  <link rel="stylesheet" href="./css/styles.css" />
+<style>
+  /* ============================================================
+     TOKENS
+     ============================================================ */
+  :root{
+    --bg:            #F6F3EC;
+    --surface:       #FFFFFF;
+    --surface-2:     #EFEBE0;
+    --ink:           #24261F;
+    --ink-soft:      #6E6C5E;
+    --ink-faint:     #A6A392;
+    --line:          #E2DCCB;
+    --accent:        #2F5233;
+    --accent-strong: #1E3A22;
+    --accent-soft:   #DFE9D6;
+    --protein:       #2F5233;
+    --carb:          #C98A2E;
+    --fat:           #A64B3E;
+    --danger:        #A64B3E;
+    --danger-soft:   #F3DED9;
+    --shadow:        0 1px 2px rgba(36,38,31,0.04), 0 8px 24px -12px rgba(36,38,31,0.18);
+    --shadow-lg:     0 20px 60px -20px rgba(36,38,31,0.35);
+    --radius-s:      10px;
+    --radius-m:      16px;
+    --radius-l:      26px;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"]{
+    --bg:            #16170F;
+    --surface:       #1F2117;
+    --surface-2:     #262819;
+    --ink:           #F1EDDE;
+    --ink-soft:      #ABA895;
+    --ink-faint:     #6E6C5A;
+    --line:          #33351F;
+    --accent:        #8FBF6B;
+    --accent-strong: #A9D488;
+    --accent-soft:   #2B3320;
+    --protein:       #8FBF6B;
+    --carb:          #E3AE55;
+    --fat:           #D08678;
+    --danger:        #D08678;
+    --danger-soft:   #3A241F;
+    --shadow:        0 1px 2px rgba(0,0,0,0.3), 0 12px 30px -14px rgba(0,0,0,0.6);
+    --shadow-lg:     0 24px 70px -20px rgba(0,0,0,0.7);
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    transition:background .3s ease, color .3s ease;
+    padding-bottom:120px;
+  }
+
+  ::selection{ background:var(--accent-soft); color:var(--ink); }
+
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:99px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  .font-display{ font-family:'Fraunces', serif; }
+  .font-mono{ font-family:'IBM Plex Mono', monospace; }
+
+  a{ color:inherit; }
+
+  :focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* ============================================================
+     LAYOUT SHELL
+     ============================================================ */
+  .wrap{
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  header.top{
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0 20px;
+    background: var(--bg);
+  }
+  .top-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 16px;
+  }
+  .brand-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 6px;
+  }
+  .brand-title{
+    font-size: clamp(26px, 4vw, 34px);
+    font-weight:600;
+    margin:0;
+    line-height:1.05;
+    letter-spacing:-0.01em;
+  }
+  .brand-sub{
+    margin:6px 0 0;
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+
+  .theme-toggle{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius: 999px;
+    padding:4px;
+    box-shadow: var(--shadow);
+    flex-shrink:0;
+  }
+  .theme-toggle button{
+    appearance:none;
+    border:none;
+    background:transparent;
+    width:34px; height:34px;
+    border-radius:999px;
+    display:flex;
+    align-items:center; justify-content:center;
+    cursor:pointer;
+    color: var(--ink-faint);
+    transition: background .2s ease, color .2s ease;
+  }
+  .theme-toggle button.active{
+    background: var(--accent);
+    color: var(--surface);
+  }
+  .theme-toggle svg{ width:16px; height:16px; }
+
+  .panel-totais{
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+  }
+  .totais-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    display:flex;
+    align-items:center;
+    gap: 24px;
+  }
+  .ring-wrap{
+    position:relative;
+    width:112px; height:112px;
+    flex-shrink:0;
+  }
+  .ring-wrap svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:var(--surface-2); stroke-width:10; }
+  .ring-seg{ fill:none; stroke-width:10; stroke-linecap:round; transition: stroke-dasharray .5s cubic-bezier(.4,0,.2,1); }
+  .ring-center{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .ring-center .kcal-num{
+    font-family:'Fraunces', serif;
+    font-size:26px;
+    font-weight:600;
+    line-height:1;
+  }
+  .ring-center .kcal-label{
+    font-size:9.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-top:3px;
+  }
+
+  .macro-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    flex:1;
+    min-width:0;
+  }
+  .macro-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13.5px;
+  }
+  .macro-dot{
+    width:8px; height:8px; border-radius:50%;
+    flex-shrink:0;
+  }
+  .macro-name{ color:var(--ink-soft); flex:1; }
+  .macro-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    font-size:13.5px;
+  }
+
+  main{ padding-top: 28px; }
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--ink-faint);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin: 0 0 14px;
+  }
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .item-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .item-row{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    box-shadow: var(--shadow);
+    animation: slideIn .25s ease;
+  }
+  @keyframes slideIn{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .item-main{ min-width:0; }
+  .item-name{
+    font-weight:600;
+    font-size:14.5px;
+    margin:0 0 3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .item-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color: var(--ink-soft);
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .item-meta b{ color:var(--ink); font-weight:600; }
+  .item-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .kcal-pill{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 5px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  html[data-theme="dark"] .kcal-pill{ color: var(--accent); }
+
+  .btn-remover{
+    width:32px; height:32px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color: var(--ink-faint);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .btn-remover:hover{ background: var(--danger-soft); color: var(--danger); }
+  .btn-remover svg{ width:16px; height:16px; }
+
+  .empty-state{
+    text-align:center;
+    padding: 50px 20px;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius-l);
+    color: var(--ink-soft);
+  }
+  .empty-state .em-icon{
+    width:40px; height:40px;
+    margin: 0 auto 14px;
+    color: var(--ink-faint);
+  }
+  .empty-state p{ margin:0; font-size:14px; line-height:1.6; }
+  .empty-state .em-title{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    color: var(--ink);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+
+  .toast-erro{
+    position:fixed;
+    left:50%; bottom:110px;
+    transform: translate(-50%, 20px);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border:1px solid var(--danger);
+    padding:12px 18px;
+    border-radius: var(--radius-s);
+    font-size:13.5px;
+    box-shadow: var(--shadow-lg);
+    z-index:60;
+    opacity:0;
+    pointer-events:none;
+    transition: all .25s ease;
+    max-width: calc(100vw - 40px);
+  }
+  .toast-erro.show{ opacity:1; transform: translate(-50%, 0); pointer-events:auto; }
+
+  .btn-busca{
+    position:fixed;
+    right:24px; bottom:24px;
+    width:60px; height:60px;
+    border-radius:50%;
+    border:none;
+    background: var(--accent);
+    color: var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    box-shadow: 0 14px 30px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+    z-index:40;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-busca:hover{ transform: translateY(-2px) scale(1.03); }
+  .btn-busca:active{ transform: translateY(0) scale(0.97); }
+  .btn-busca svg{ width:24px; height:24px; }
+
+  .modal-overlay{
+    position:fixed; inset:0;
+    background: color-mix(in srgb, black 45%, transparent);
+    backdrop-filter: blur(3px);
+    z-index:50;
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 6vh 16px;
+    overflow-y:auto;
+  }
+  .modal-overlay.open{ display:flex; }
+
+  .modal-card{
+    background: var(--surface);
+    width:100%; max-width:480px;
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-lg);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    max-height: 86vh;
+    border: 1px solid var(--line);
+    animation: popIn .18s ease;
+  }
+  @keyframes popIn{
+    from{ opacity:0; transform: translateY(10px) scale(.98); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 18px 20px 10px;
+  }
+  .modal-head h3{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  
+  /* --- ABAS (TABS) --- */
+  .modal-tabs{
+    display:flex;
+    border-bottom: 1px solid var(--line);
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .tab-btn{
+    background: none;
+    border: none;
+    padding: 10px 4px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-faint);
+    cursor: pointer;
+    position: relative;
+    transition: color .2s ease;
+  }
+  .tab-btn:hover{ color: var(--ink); }
+  .tab-btn.active{ color: var(--accent); font-weight: 600; }
+  .tab-btn.active::after{
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 99px;
+  }
+
+  .tab-content{ display: none; flex-direction: column; flex: 1; overflow-y: auto; }
+  .tab-content.active{ display: flex; }
+
+  .search-field{ padding: 16px 20px; }
+  .search-field input{
+    width:100%;
+    background: var(--surface-2);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size:14.5px;
+    color: var(--ink);
+    outline:none;
+    font-family:'Inter', sans-serif;
+    transition: border-color .15s ease;
+  }
+  .search-field input:focus{ border-color: var(--accent); }
+
+  /* --- FORMULÁRIO PERSONALIZADO --- */
+  .custom-form{ padding: 16px 20px 24px; display:flex; flex-direction:column; gap:14px; }
+  .form-group{ display:flex; flex-direction:column; gap:6px; }
+  .form-group label{ font-size:12.5px; font-weight:500; color:var(--ink-soft); }
+  .form-group input{
+    width:100%;
+    background: var(--surface-2);
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size:14px;
+    outline:none;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    transition: border-color .15s ease;
+  }
+  .form-group input:focus{ border-color: var(--accent); }
+  .form-grid-macros{ display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+  .form-group input.mono-input{ font-family:'IBM Plex Mono', monospace; }
+  .btn-submit-custom{
+    background: var(--accent);
+    color: var(--surface);
+    border:none;
+    border-radius:10px;
+    padding: 12px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:6px;
+    transition: opacity .15s ease, transform .1s ease;
+  }
+  .btn-submit-custom:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-submit-custom:not(:disabled):active{ transform: scale(0.98); }
+
+  .peso-box{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    padding: 16px 20px;
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+  }
+  .peso-box.show{ display:flex; animation: popIn .15s ease; }
+  .peso-label{ font-size:13.5px; color: var(--ink-soft); }
+  .peso-label b{ color:var(--ink); font-weight:600; }
+  .peso-inputs{ display:flex; gap:8px; }
+  .peso-inputs input{
+    flex:1;
+    background: var(--surface);
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:14px;
+    outline:none;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+  }
+  .peso-inputs input:focus{ border-color: var(--accent); }
+  .btn-add{
+    background: var(--accent);
+    color: var(--surface);
+    border:none;
+    border-radius:10px;
+    padding: 0 18px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition: opacity .15s ease, transform .1s ease;
+  }
+  .btn-add:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-add:not(:disabled):active{ transform: scale(0.97); }
+
+  .result-list{ list-style:none; margin:0; padding:0 8px 8px; overflow-y:auto; flex:1; }
+  .result-item{
+    padding: 12px 12px;
+    border-radius: 12px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px;
+    transition: background .12s ease;
+  }
+  .result-item:hover{ background: var(--surface-2); }
+  .result-name{ font-weight:600; font-size:14px; margin:0 0 2px; }
+  .result-meta{ font-size:11.5px; color:var(--ink-faint); font-family:'IBM Plex Mono', monospace; }
+  .result-cta{
+    font-size:12px; font-weight:600; color:var(--accent);
+    white-space:nowrap; flex-shrink:0;
+  }
+  html[data-theme="dark"] .result-cta{ color: var(--accent-strong); }
+  .result-empty{
+    padding: 30px 16px;
+    text-align:center;
+    color: var(--ink-faint);
+    font-size:13.5px;
+  }
+
+  @media (max-width: 480px){
+    .totais-card{ flex-direction:column; align-items:stretch; text-align:center; }
+    .macro-list{ align-items:center; }
+    .macro-row{ justify-content:center; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen text-slate-800 pb-24">
 
-  <!-- HEADER -->
-  <header class="bg-white border-b border-slate-100 px-4 py-4 sm:px-6">
-    <div class="max-w-2xl mx-auto flex items-center justify-between">
-      <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Minha Refeição</h1>
-        <p class="text-xs sm:text-sm text-slate-400">Base nutricional oficial: Tabela TACO</p>
+<body>
+
+<header class="top">
+  <div class="wrap top-row">
+    <div>
+      <p class="brand-eyebrow">Ficha nutritional · Base TACO & Industriais Expandida</p>
+      <h1 class="brand-title font-display">Minha Refeição</h1>
+      <p class="brand-sub">Monte sua refeição e acompanhe kcal e macros em tempo real de forma 100% local.</p>
+    </div>
+    <div class="theme-toggle" role="group" aria-label="Selecionar tema">
+      <button id="btnTemaClaro" aria-label="Tema claro" title="Tema claro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button id="btnTemaEscuro" aria-label="Tema escuro" title="Tema escuro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="panel-totais">
+  <div class="wrap">
+    <div class="totais-card">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+          <circle id="ringProteina" class="ring-seg" cx="60" cy="60" r="50" stroke="var(--protein)" stroke-dasharray="0 999"></circle>
+          <circle id="ringCarbo" class="ring-seg" cx="60" cy="60" r="50" stroke="var(--carb)" stroke-dasharray="0 999"></circle>
+          <circle id="ringGordura" class="ring-seg" cx="60" cy="60" r="50" stroke="var(--fat)" stroke-dasharray="0 999"></circle>
+        </svg>
+        <div class="ring-center">
+          <span id="totalKcal" class="kcal-num font-display">0</span>
+          <span class="kcal-label">kcal</span>
+        </div>
+      </div>
+      <div class="macro-list">
+        <div class="macro-row">
+          <span class="macro-dot" style="background:var(--protein)"></span>
+          <span class="macro-name">Proteína</span>
+          <span id="totalProteina" class="macro-value">0 g</span>
+        </div>
+        <div class="macro-row">
+          <span class="macro-dot" style="background:var(--carb)"></span>
+          <span class="macro-name">Carboidrato</span>
+          <span id="totalCarboidrato" class="macro-value">0 g</span>
+        </div>
+        <div class="macro-row">
+          <span class="macro-dot" style="background:var(--fat)"></span>
+          <span class="macro-name">Gordura</span>
+          <span id="totalGordura" class="macro-value">0 g</span>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
+</section>
 
-  <!-- MENSAGEM DE ERRO (oculta por padrão) -->
-  <div id="areaMensagemErro"
-    class="hidden max-w-2xl mx-auto mt-3 mx-4 sm:mx-auto bg-rose-50 border border-rose-200 text-rose-600 text-sm px-4 py-3 rounded-xl">
+<main class="wrap">
+  <p class="section-label">Itens adicionados</p>
+
+  <div id="estadoVazioRefeicao" class="empty-state">
+    <svg class="em-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21c-4-3-8-6.5-8-11a5 5 0 019-3 5 5 0 019 3c0 4.5-4 8-8 11z"/></svg>
+    <p class="em-title font-display">Sua refeição está vazia</p>
+    <p>Toque no botão verde para buscar ou criar um alimento<br>e começar a monitorar seu prato.</p>
   </div>
 
-  <!-- PAINEL DE TOTAIS (sticky no topo) -->
-  <section class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-100 px-4 py-4 sm:px-6 shadow-sm">
-    <div class="max-w-2xl mx-auto grid grid-cols-4 gap-2 sm:gap-4 text-center">
-      <div>
-        <p id="totalKcal" class="text-2xl sm:text-3xl font-bold text-emerald-500 leading-tight">0</p>
-        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Kcal</p>
-      </div>
-      <div>
-        <p id="totalProteina" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
-        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Proteína</p>
-      </div>
-      <div>
-        <p id="totalCarboidrato" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
-        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Carbo</p>
-      </div>
-      <div>
-        <p id="totalGordura" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
-        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Gordura</p>
-      </div>
+  <ul id="listaItensRefeicao" class="item-list"></ul>
+</main>
+
+<div id="toastErro" class="toast-erro"></div>
+
+<button id="botaoAbrirBusca" class="btn-busca" aria-label="Adicionar Alimento" title="Adicionar Alimento">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+</button>
+
+<div id="modalBusca" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 class="font-display">Adicionar Alimento</h3>
+      <button id="botaoFecharModal" class="btn-x" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
-  </section>
 
-  <!-- LISTA DE ITENS DA REFEIÇÃO -->
-  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-5">
-    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Itens adicionados</h2>
+    <div class="modal-tabs">
+      <button id="tabBusca" class="tab-btn active">Buscar na Base</button>
+      <button id="tabPersonalizado" class="tab-btn">Personalizado / Embalagem</button>
+    </div>
 
-    <p id="estadoVazioRefeicao" class="text-sm text-slate-400 text-center py-10 border border-dashed border-slate-200 rounded-xl">
-      Nenhum alimento adicionado ainda.<br />
-      Toque no botão de busca 🔍 para começar.
-    </p>
-
-    <ul id="listaItensRefeicao" class="flex flex-col gap-2"></ul>
-  </main>
-
-  <!-- BOTÃO DE LUPA (fixo, destacado) -->
-  <button id="botaoAbrirBusca"
-    class="fixed bottom-6 right-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-colors z-20"
-    aria-label="Buscar alimento">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.35 4.35a7.5 7.5 0 0012.3 12.3z" />
-    </svg>
-  </button>
-
-  <!-- MODAL DE BUSCA -->
-  <div id="modalBusca" class="hidden fixed inset-0 bg-slate-900/50 z-30 items-center justify-center px-4">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden">
-
-      <!-- Cabeçalho do modal -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <h3 class="font-semibold text-slate-800">Buscar alimento</h3>
-        <button id="botaoFecharModal" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Fechar busca">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+    <!-- ABA 1: BUSCAR NA BASE -->
+    <div id="conteudoTabBusca" class="tab-content active">
+      <div class="search-field">
+        <input id="inputBusca" type="text" placeholder="Ex: arroz, frango, mel, feijoada..." autocomplete="off" />
       </div>
 
-      <!-- Campo de busca -->
-      <div class="px-4 py-3 border-b border-slate-100">
-        <input
-          id="inputBusca"
-          type="text"
-          autofocus
-          placeholder="Ex: arroz, frango, banana..."
-          class="w-full bg-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
-        />
-      </div>
-
-      <!-- Formulário de peso (aparece após selecionar um alimento) -->
-      <div id="formularioPeso" class="hidden flex-col gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
-        <p class="text-sm text-slate-600">
-          Peso de <span id="nomeAlimentoSelecionado" class="font-semibold text-slate-800"></span> (em gramas):
-        </p>
-        <div class="flex gap-2">
-          <input
-            id="inputPeso"
-            type="number"
-            min="1"
-            step="1"
-            placeholder="Ex: 150"
-            class="flex-1 bg-white border border-emerald-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-          <button
-            id="botaoAdicionarRefeicao"
-            disabled
-            class="opacity-50 cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-xl px-4 py-2 transition-colors whitespace-nowrap">
-            Adicionar
-          </button>
+      <div id="formularioPeso" class="peso-box">
+        <p class="peso-label">Peso de <b id="nomeAlimentoSelecionado"></b> em gramas:</p>
+        <div class="peso-inputs">
+          <input id="inputPeso" type="number" min="1" step="1" placeholder="Ex: 150" />
+          <button id="botaoAdicionarRefeicao" class="btn-add" disabled>Adicionar</button>
         </div>
       </div>
 
-      <!-- Lista de resultados -->
-      <ul id="listaResultadosBusca" class="overflow-y-auto flex-1"></ul>
+      <ul id="listaResultadosBusca" class="result-list"></ul>
     </div>
-  </div>
 
-  <!-- Scripts: ordem importa (calculator -> meal -> search -> app) -->
-  <script src="./js/calculator.js"></script>
-  <script src="./js/meal.js"></script>
-  <script src="./js/search.js"></script>
-  <script src="./js/app.js"></script>
+    <!-- ABA 2: ALIMENTO PERSONALIZADO -->
+    <div id="conteudoTabPersonalizado" class="tab-content">
+      <div class="custom-form">
+        <div class="form-group">
+          <label for="customNome">Nome do Alimento</label>
+          <input id="customNome" type="text" placeholder="Ex: Bolacha Recheada de Morango" autocomplete="off" />
+        </div>
+        <div class="form-grid-macros">
+          <div class="form-group">
+            <label for="customPeso">Peso Consumido (g)</label>
+            <input id="customPeso" class="mono-input" type="number" min="1" placeholder="Ex: 30" />
+          </div>
+          <div class="form-group">
+            <label for="customKcal">Calorias da porção (kcal)</label>
+            <input id="customKcal" class="mono-input" type="number" min="0" placeholder="Ex: 140" />
+          </div>
+        </div>
+        <div class="form-grid-macros">
+          <div class="form-group">
+            <label for="customProt">Proteínas (g)</label>
+            <input id="customProt" class="mono-input" type="number" min="0" step="0.1" placeholder="Ex: 1.8" />
+          </div>
+          <div class="form-group">
+            <label for="customCarbo">Carboidratos (g)</label>
+            <input id="customCarbo" class="mono-input" type="number" min="0" step="0.1" placeholder="Ex: 21" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="customGord">Gorduras Totais (g)</label>
+          <input id="customGord" class="mono-input" type="number" min="0" step="0.1" placeholder="Ex: 5.2" />
+        </div>
+        <button id="btnSalvarCustomizado" class="btn-submit-custom" disabled>Adicionar à Refeição</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TABELA EXTENSIVA DE ALIMENTOS REAIS BRASILEIROS
+   ============================================================ */
+const BASE_ALIMENTOS = [
+  { id:1,   nome:"Arroz Branco Cozido", categoria:"Cereais e derivados", kcal:128, proteina_g:2.5, carboidrato_g:28.1, gordura_g:0.2 },
+  { id:2,   nome:"Arroz Integral Cozido", categoria:"Cereais e derivados", kcal:124, proteina_g:2.6, carboidrato_g:25.8, gordura_g:1.0 },
+  { id:3,   nome:"Macarrão de Trigo Cozido", categoria:"Cereais e derivados", kcal:111, proteina_g:3.5, carboidrato_g:21.8, gordura_g:0.9 },
+  { id:4,   nome:"Macarrão Integral Cozido", categoria:"Cereais e derivados", kcal:124, proteina_g:5.5, carboidrato_g:25.0, gordura_g:0.6 },
+  { id:5,   nome:"Aveia em Flocos / Farelo", categoria:"Cereais e derivados", kcal:394, proteina_g:13.9, carboidrato_g:66.6, gordura_g:8.5 },
+  { id:6,   nome:"Tapioca (Goma Pronta Hidratada)", categoria:"Cereais e derivados", kcal:242, proteina_g:0.2, carboidrato_g:60.0, gordura_g:0.0 },
+  { id:7,   nome:"Cuscuz Nordestino (Farinha de Milho)", categoria:"Cereais e derivados", kcal:112, proteina_g:2.2, carboidrato_g:25.3, gordura_g:0.4 },
+  { id:8,   nome:"Farinha de Mandioca Torrada", categoria:"Cereais e derivados", kcal:361, proteina_g:1.2, carboidrato_g:87.8, gordura_g:0.4 },
+  { id:10,  nome:"Feijão Carioca Cozido", categoria:"Leguminosas", kcal:76, proteina_g:4.8, carboidrato_g:13.6, gordura_g:0.5 },
+  { id:11,  nome:"Feijão Preto Cozido", categoria:"Leguminosas", kcal:77, proteina_g:4.5, carboidrato_g:14.0, gordura_g:0.5 },
+  { id:12,  nome:"Lentilha Cozida", category:"Leguminosas", kcal:93, proteina_g:6.3, carboidrato_g:15.0, gordura_g:0.5 },
+  { id:13,  nome:"Grão-de-Bico Cozido", categoria:"Leguminosas", kcal:139, proteina_g:7.0, carboidrato_g:20.0, gordura_g:2.6 },
+  { id:20,  nome:"Frango Peito Grelhado (sem pele)", categoria:"Carnes e Aves", kcal:159, proteina_g:32.0, carboidrato_g:0.0, gordura_g:2.5 },
+  { id:21,  nome:"Frango Coxa/Sobrecoxa Assada (sem pele)", categoria:"Carnes e Aves", kcal:167, proteina_g:24.5, carboidrato_g:0.0, gordura_g:7.0 },
+  { id:22,  nome:"Carne Bovina Patinho Moído / Grelhado", categoria:"Carnes e Aves", kcal:219, proteina_g:35.9, carboidrato_g:0.0, gordura_g:7.3 },
+  { id:23,  nome:"Carne Bovina Alcatra Grelhada", categoria:"Carnes e Aves", kcal:215, proteina_g:31.9, carboidrato_g:0.0, gordura_g:8.7 },
+  { id:24,  nome:"Carne Bovina Maminha Grelhada", categoria:"Carnes e Aves", kcal:153, proteina_g:27.5, carboidrato_g:0.0, gordura_g:4.1 },
+  { id:25,  nome:"Carne Bovina Contrafilé Grelhado (sem gordura)", categoria:"Carnes e Aves", kcal:194, proteina_g:29.8, carboidrato_g:0.0, gordura_g:7.4 },
+  { id:26,  nome:"Carne Suína Lombo Grelhado/Assado", categoria:"Carnes e Aves", kcal:170, proteina_g:29.5, carboidrato_g:0.0, gordura_g:5.0 },
+  { id:27,  nome:"Ovo de Galinha Inteiro Cozido", categoria:"Ovos", kcal:146, proteina_g:13.3, carboidrato_g:0.6, gordura_g:9.5 },
+  { id:28,  nome:"Ovo de Galinha Inteiro Frito", categoria:"Ovos", kcal:240, proteina_g:15.0, carboidrato_g:0.8, gordura_g:19.0 },
+  { id:29,  nome:"Clara de Ovo Cozida", categoria:"Ovos", kcal:52, proteina_g:11.0, carboidrato_g:0.7, gordura_g:0.2 },
+  { id:35,  nome:"Peixe Tilápia / Saint Peter Grelhado", categoria:"Peixes", kcal:110, proteina_g:24.0, carboidrato_g:0.0, gordura_g:1.5 },
+  { id:36,  nome:"Peixe Salmão Grelhado / Assado", categoria:"Peixes", kcal:200, proteina_g:25.0, carboidrato_g:0.0, gordura_g:11.0 },
+  { id:37,  nome:"Atum em Lata (em óleo, drenado)", categoria:"Peixes", kcal:166, proteina_g:26.0, carboidrato_g:0.0, gordura_g:7.0 },
+  { id:38,  nome:"Atum em Lata (em água)", categoria:"Peixes", kcal:116, proteina_g:26.0, carboidrato_g:0.0, gordura_g:1.0 },
+  { id:39,  nome:"Sardinha em Lata (em óleo)", categoria:"Peixes", kcal:280, proteina_g:24.0, carboidrato_g:0.0, gordura_g:20.0 },
+  { id:45,  nome:"Batata Doce Cozida", categoria:"Vegetais e Raízes", kcal:77, proteina_g:0.6, carboidrato_g:18.4, gordura_g:0.1 },
+  { id:46,  nome:"Batata Inglesa Cozida", categoria:"Vegetais e Raízes", kcal:52, proteina_g:1.2, carboidrato_g:11.9, gordura_g:0.1 },
+  { id:47,  nome:"Mandioca / Aipim Cozido", categoria:"Vegetais e Raízes", kcal:125, proteina_g:0.6, carboidrato_g:30.1, gordura_g:0.3 },
+  { id:48,  nome:"Cenoura Crua", categoria:"Vegetais e Raízes", kcal:34, proteina_g:1.3, carboidrato_g:7.7, gordura_g:0.2 },
+  { id:49,  nome:"Brócolis Cozido", categoria:"Vegetais e Raízes", kcal:25, proteina_g:3.6, carboidrato_g:4.4, gordura_g:0.5 },
+  { id:50,  nome:"Tomate Cru", categoria:"Vegetais e Raízes", kcal:15, proteina_g:1.1, carboidrato_g:3.1, gordura_g:0.2 },
+  { id:51,  nome:"Alface Crespa Crua", categoria:"Vegetais e Raízes", kcal:11, proteina_g:1.3, carboidrato_g:1.7, gordura_g:0.2 },
+  { id:60,  nome:"Banana Prata Crua", categoria:"Frutas", kcal:98, proteina_g:1.3, carboidrato_g:26.0, gordura_g:0.1 },
+  { id:61,  nome:"Banana Nanica Crua", categoria:"Frutas", kcal:92, proteina_g:1.4, carboidrato_g:23.8, gordura_g:0.1 },
+  { id:62,  nome:"Maçã Fuji / Gala com casca", categoria:"Frutas", kcal:56, proteina_g:0.3, carboidrato_g:15.2, gordura_g:0.1 },
+  { id:63,  nome:"Abacate Cru", categoria:"Frutas", kcal:96, proteina_g:1.2, carboidrato_g:6.0, gordura_g:8.4 },
+  { id:75,  nome:"Leite de Vaca Integral", categoria:"Laticínios", kcal:61, proteina_g:2.9, carboidrato_g:4.3, gordura_g:3.2 },
+  { id:76,  nome:"Leite de Vaca Desnatado", categoria:"Laticínios", kcal:35, proteina_g:3.0, carboidrato_g:4.7, gordura_g:0.1 },
+  { id:78,  nome:"Queijo Muçarela Placa / Fatiado", categoria:"Laticínios", kcal:330, proteina_g:22.6, carboidrato_g:3.0, gordura_g:25.2 },
+  { id:90,  nome:"Pão Francês / Sal", categoria:"Padaria", kcal:300, proteina_g:8.0, carboidrato_g:58.6, gordura_g:3.1 },
+  { id:91,  nome:"Pão de Forma Tradicional", categoria:"Padaria", kcal:252, proteina_g:8.0, carboidrato_g:49.0, gordura_g:2.5 },
+  { id:93,  nome:"Pão de Queijo Assado", categoria:"Padaria", kcal:360, proteina_g:6.5, carboidrato_g:45.3, gordura_g:17.2 },
+  { id:100, nome:"Mel de Abelha Pura", categoria:"Doces e Açúcares", kcal:304, proteina_g:0.3, carboidrato_g:82.4, gordura_g:0.0 },
+  { id:101, nome:"Leite Condensado (Moça)", categoria:"Doces e Açúcares", kcal:321, proteina_g:7.3, carboidrato_g:54.3, gordura_g:8.3 },
+  { id:121, nome:"Hambúrguer de Carne Bovina (Disco)", categoria:"Lanches", kcal:250, proteina_g:16.0, carboidrato_g:0.0, gordura_g:20.0 },
+  { id:140, nome:"Whey Protein (Pó)", categoria:"Suplementos", kcal:400, proteina_g:80.0, carboidrato_g:6.0, gordura_g:6.0 },
+  { id:142, nome:"Pasta de Amendoim Integral", categoria:"Suplementos", kcal:600, proteina_g:28.0, carboidrato_g:12.0, gordura_g:49.0 },
+  { id:160, nome:"Azeite de Oliva Extra Virgem", categoria:"Gorduras", kcal:884, proteina_g:0.0, carboidrato_g:0.0, gordura_g:100.0 }
+];
+
+/* ============================================================
+   FUNÇÕES PURAS DE CÁLCULO
+   ============================================================ */
+function arredondar(v){ return Math.round(v * 10) / 10; }
+
+function mapearAlimento(item){
+  return {
+    id: item.id,
+    nome: item.nome,
+    categoria: item.categoria,
+    kcalPor100g: item.kcal,
+    proteinaPor100g: item.proteina_g,
+    carboidratoPor100g: item.carboidrato_g,
+    gorduraPor100g: item.gordura_g
+  };
+}
+
+function calcularPorcao(alimentoMapeado, pesoEmGramas){
+  const factor = pesoEmGramas / 100;
+  return {
+    porcaoId: `porcao-${Date.now()}-${Math.floor(Math.random()*100000)}`,
+    id: alimentoMapeado.id,
+    nome: alimentoMapeado.nome,
+    pesoEmGramas,
+    kcal: arredondar(alimentoMapeado.kcalPor100g * factor),
+    proteina_g: arredondar(alimentoMapeado.proteinaPor100g * factor),
+    carboidrato_g: arredondar(alimentoMapeado.carboidratoPor100g * factor),
+    gordura_g: arredondar(alimentoMapeado.gorduraPor100g * factor)
+  };
+}
+
+function calcularTotaisRefeicao(lista){
+  const t = lista.reduce((acc, p) => {
+    acc.kcal += p.kcal; acc.proteina_g += p.proteina_g;
+    acc.carboidrato_g += p.carboidrato_g; acc.gordura_g += p.gordura_g;
+    return acc;
+  }, { kcal:0, proteina_g:0, carboidrato_g:0, gordura_g:0 });
+  return {
+    kcal: arredondar(accKcal = t.kcal), proteina_g: arredondar(t.proteina_g),
+    carboidrato_g: arredondar(t.carboidrato_g), gordura_g: arredondar(t.gordura_g)
+  };
+}
+
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+let BASE_ALIMENTOS_MAPEADA = [];
+let REFEICAO_ATUAL = [];
+let alimentoSelecionado = null;
+let debounceId = null;
+
+/* ============================================================
+   TEMA INTERFACE
+   ============================================================ */
+function aplicarTema(tema){
+  document.documentElement.setAttribute('data-theme', tema);
+  localStorage.setItem('tema-preferido', tema);
+  document.getElementById('btnTemaClaro').classList.toggle('active', tema === 'light');
+  document.getElementById('btnTemaEscuro').classList.toggle('active', tema === 'dark');
+}
+
+function inicializarTema(){
+  const salvo = localStorage.getItem('tema-preferido');
+  if (salvo) { aplicarTema(salvo); return; }
+  const prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  aplicarTema(prefereEscuro ? 'dark' : 'light');
+}
+
+/* ============================================================
+   ABAS (SWITCH TABS)
+   ============================================================ */
+function alternarAba(abaDestino) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  if (abaDestino === 'busca') {
+    document.getElementById('tabBusca').classList.add('active');
+    document.getElementById('conteudoTabBusca').classList.add('active');
+    document.getElementById('inputBusca').focus();
+  } else {
+    document.getElementById('tabPersonalizado').classList.add('active');
+    document.getElementById('conteudoTabPersonalizado').classList.add('active');
+    document.getElementById('customNome').focus();
+  }
+}
+
+/* ============================================================
+   BUSCA NA BASE
+   ============================================================ */
+function buscarAlimentos(termo, base){
+  const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const t = normalizar(termo.trim());
+  if (t.length === 0) return [];
+  
+  return base.filter(a => {
+    return normalizar(a.nome).includes(t) || normalizar(a.categoria).includes(t);
+  }).slice(0, 20);
+}
+
+function abrirModalBusca(){
+  document.getElementById('modalBusca').classList.add('open');
+  document.getElementById('modalBusca').setAttribute('aria-hidden', 'false');
+  alimentoSelecionado = null;
+  limparFormularios();
+  alternarAba('busca');
+}
+
+function fecharModalBusca(){
+  document.getElementById('modalBusca').classList.remove('open');
+  document.getElementById('modalBusca').setAttribute('aria-hidden', 'true');
+}
+
+function limparFormularios() {
+  document.getElementById('inputBusca').value = '';
+  document.getElementById('inputPeso').value = '';
+  document.getElementById('listaResultadosBusca').innerHTML = '';
+  esconderFormularioPeso();
+  
+  // Limpar formulário de personalizado
+  document.getElementById('customNome').value = '';
+  document.getElementById('customPeso').value = '';
+  document.getElementById('customKcal').value = '';
+  document.getElementById('customProt').value = '';
+  document.getElementById('customCarbo').value = '';
+  document.getElementById('customGord').value = '';
+  document.getElementById('btnSalvarCustomizado').disabled = true;
+}
+
+function selecionarAlimento(alimento){
+  alimentoSelecionado = alimento;
+  document.getElementById('nomeAlimentoSelecionado').textContent = alimento.nome;
+  document.getElementById('inputPeso').value = '';
+  document.getElementById('botaoAdicionarRefeicao').disabled = true;
+  document.getElementById('formularioPeso').classList.add('show');
+  setTimeout(() => document.getElementById('inputPeso').focus(), 50);
+}
+
+function esconderFormularioPeso(){
+  document.getElementById('formularioPeso').classList.remove('show');
+}
+
+function renderizarResultados(resultados){
+  const ul = document.getElementById('listaResultadosBusca');
+  ul.innerHTML = '';
+  if (resultados.length === 0){
+    if(document.getElementById('inputBusca').value.trim() !== '') {
+      ul.innerHTML = `<li class="result-empty">Não encontrou? Use a aba "Personalizado / Embalagem" acima!</li>`;
+    }
+    return;
+  }
+  resultados.forEach(a => {
+    const li = document.createElement('li');
+    li.className = 'result-item';
+    li.innerHTML = `<div><p class="result-name">${a.nome}</p><p class="result-meta">${a.categoria} · ${a.kcalPor100g} kcal/100g</p></div><span class="result-cta">Selecionar →</span>`;
+    li.addEventListener('click', () => selecionarAlimento(a));
+    ul.appendChild(li);
+  });
+}
+
+/* ============================================================
+   VALIDAÇÃO E ADIÇÃO DE PERSONALIZADOS
+   ============================================================ */
+function validarFormularioCustomizado() {
+  const nome = document.getElementById('customNome').value.trim();
+  const peso = parseFloat(document.getElementById('customPeso').value);
+  const kcal = parseFloat(document.getElementById('customKcal').value);
+  const prot = parseFloat(document.getElementById('customProt').value);
+  const carbo = parseFloat(document.getElementById('customCarbo').value);
+  const gord = parseFloat(document.getElementById('customGord').value);
+
+  const valido = nome.length > 0 && 
+                 !isNaN(peso) && peso > 0 && 
+                 !isNaN(kcal) && kcal >= 0 && 
+                 !isNaN(prot) && prot >= 0 && 
+                 !isNaN(carbo) && carbo >= 0 && 
+                 !isNaN(gord) && gord >= 0;
+
+  document.getElementById('btnSalvarCustomizado').disabled = !valido;
+}
+
+function adicionarAlimentoCustomizado() {
+  const nome = document.getElementById('customNome').value.trim();
+  const peso = parseFloat(document.getElementById('customPeso').value);
+  const kcal = parseFloat(document.getElementById('customKcal').value);
+  const prot = parseFloat(document.getElementById('customProt').value);
+  const carbo = parseFloat(document.getElementById('customCarbo').value);
+  const gord = parseFloat(document.getElementById('customGord').value);
+
+  const porcaoCustom = {
+    porcaoId: `porcao-custom-${Date.now()}`,
+    nome: `${nome} (Manual)`,
+    pesoEmGramas: peso,
+    kcal: arredondar(kcal),
+    proteina_g: arredondar(prot),
+    carboidrato_g: arredondar(carbo),
+    gordura_g: arredondar(gord)
+  };
+
+  REFEICAO_ATUAL.push(porcaoCustom);
+  renderizarRefeicao();
+  fecharModalBusca();
+}
+
+/* ============================================================
+   GERENCIAMENTO DA REFEIÇÃO
+   ============================================================ */
+function adicionarItemNaRefeicao(alimentoMapeado, peso){
+  REFEICAO_ATUAL.push(calcularPorcao(alimentoMapeado, peso));
+  renderizarRefeicao();
+  fecharModalBusca();
+}
+
+function removerItemDaRefeicao(porcaoId){
+  REFEICAO_ATUAL = REFEICAO_ATUAL.filter(p => p.porcaoId !== porcaoId);
+  renderizarRefeicao();
+}
+
+function renderizarRefeicao(){
+  const ul = document.getElementById('listaItensRefeicao');
+  const vazio = document.getElementById('estadoVazioRefeicao');
+  ul.innerHTML = '';
+  
+  if (REFEICAO_ATUAL.length === 0){
+    vazio.style.display = 'block';
+  } else {
+    vazio.style.display = 'none';
+    REFEICAO_ATUAL.forEach(p => {
+      const li = document.createElement('li');
+      li.className = 'item-row';
+      li.innerHTML = `
+        <div class="item-main">
+          <p class="item-name">${p.nome}</p>
+          <div class="item-meta">
+            <span><b>${p.pesoEmGramas}g</b></span>
+            <span>P ${p.proteina_g}g</span>
+            <span>C ${p.carboidrato_g}g</span>
+            <span>G ${p.gordura_g}g</span>
+          </div>
+        </div>
+        <div class="item-actions">
+          <span class="kcal-pill">${p.kcal} kcal</span>
+          <button class="btn-remover" data-id="${p.porcaoId}" aria-label="Remover item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>`;
+      ul.appendChild(li);
+    });
+    ul.querySelectorAll('.btn-remover').forEach(btn => {
+      btn.addEventListener('click', () => removerItemDaRefeicao(btn.getAttribute('data-id')));
+    });
+  }
+  renderizarTotais();
+}
+
+function renderizarTotais(){
+  const t = calcularTotaisRefeicao(REFEICAO_ATUAL);
+  document.getElementById('totalKcal').textContent = t.kcal;
+  document.getElementById('totalProteina').textContent = `${t.proteina_g} g`;
+  document.getElementById('totalCarboidrato').textContent = `${t.carboidrato_g} g`;
+  document.getElementById('totalGordura').textContent = `${t.gordura_g} g`;
+
+  const somaGramas = t.proteina_g + t.carboidrato_g + t.gordura_g;
+  const CIRCUNFERENCIA = 2 * Math.PI * 50;
+
+  function segmento(id, valor, offsetAcumulado){
+    const el = document.getElementById(id);
+    const fracao = somaGramas > 0 ? valor / somaGramas : 0;
+    const comprimento = fracao * CIRCUNFERENCIA;
+    el.setAttribute('stroke-dasharray', `${comprimento} ${CIRCUNFERENCIA - comprimento}`);
+    el.setAttribute('stroke-dashoffset', -offsetAcumulado);
+    return offsetAcumulado + comprimento;
+  }
+
+  let acumulado = 0;
+  acumulado = segmento('ringProteina', t.proteina_g, acumulado);
+  acumulado = segmento('ringCarbo', t.carboidrato_g, acumulado);
+  segmento('ringGordura', t.gordura_g, acumulado);
+}
+
+/* ============================================================
+   EVENTOS E INICIALIZAÇÃO
+   ============================================================ */
+function conectarEventos(){
+  document.getElementById('botaoAbrirBusca').addEventListener('click', abrirModalBusca);
+  document.getElementById('botaoFecharModal').addEventListener('click', fecharModalBusca);
+  
+  // Abas
+  document.getElementById('tabBusca').addEventListener('click', () => alternarAba('busca'));
+  document.getElementById('tabPersonalizado').addEventListener('click', () => alternarAba('personalizado'));
+
+  // Eventos de Busca Base
+  document.getElementById('inputBusca').addEventListener('input', (e) => {
+    clearTimeout(debounceId);
+    debounceId = setTimeout(() => {
+      renderizarResultados(buscarAlimentos(e.target.value, BASE_ALIMENTOS_MAPEADA));
+    }, 100);
+  });
+  
+  document.getElementById('inputPeso').addEventListener('input', (e) => {
+    const peso = parseFloat(e.target.value);
+    document.getElementById('botaoAdicionarRefeicao').disabled = !(peso > 0);
+  });
+  
+  document.getElementById('botaoAdicionarRefeicao').addEventListener('click', () => {
+    const peso = parseFloat(document.getElementById('inputPeso').value);
+    if(alimentoSelecionado && peso > 0) adicionarItemNaRefeicao(alimentoSelecionado, peso);
+  });
+
+  // Eventos de Form Personalizado
+  const inputsCustom = ['customNome', 'customPeso', 'customKcal', 'customProt', 'customCarbo', 'customGord'];
+  inputsCustom.forEach(id => {
+    document.getElementById(id).addEventListener('input', validarFormularioCustomizado);
+  });
+  
+  document.getElementById('btnSalvarCustomizado').addEventListener('click', adicionarAlimentoCustomizado);
+
+  // Fechar fora do Modal
+  document.getElementById('modalBusca').addEventListener('click', (e) => {
+    if (e.target.id === 'modalBusca') fecharModalBusca();
+  });
+
+  // Temas
+  document.getElementById('btnTemaClaro').addEventListener('click', () => aplicarTema('light'));
+  document.getElementById('btnTemaEscuro').addEventListener('click', () => aplicarTema('dark'));
+}
+
+function inicializar(){
+  inicializarTema();
+  BASE_ALIMENTOS_MAPEADA = BASE_ALIMENTOS.map(mapearAlimento);
+  conectarEventos();
+  renderizarRefeicao();
+}
+
+document.addEventListener('DOMContentLoaded', inicializar);
+</script>
 </body>
 </html>
