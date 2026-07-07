@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minha Refeição — Contador de Calorias TACO</title>
+
+  <!-- Tailwind CSS via CDN (sem build step) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Customizações que o Tailwind CDN não cobre -->
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="bg-slate-50 font-sans min-h-screen text-slate-800 pb-24">
+
+  <!-- HEADER -->
+  <header class="bg-white border-b border-slate-100 px-4 py-4 sm:px-6">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Minha Refeição</h1>
+        <p class="text-xs sm:text-sm text-slate-400">Base nutricional oficial: Tabela TACO</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- MENSAGEM DE ERRO (oculta por padrão) -->
+  <div id="areaMensagemErro"
+    class="hidden max-w-2xl mx-auto mt-3 mx-4 sm:mx-auto bg-rose-50 border border-rose-200 text-rose-600 text-sm px-4 py-3 rounded-xl">
+  </div>
+
+  <!-- PAINEL DE TOTAIS (sticky no topo) -->
+  <section class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-100 px-4 py-4 sm:px-6 shadow-sm">
+    <div class="max-w-2xl mx-auto grid grid-cols-4 gap-2 sm:gap-4 text-center">
+      <div>
+        <p id="totalKcal" class="text-2xl sm:text-3xl font-bold text-emerald-500 leading-tight">0</p>
+        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Kcal</p>
+      </div>
+      <div>
+        <p id="totalProteina" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
+        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Proteína</p>
+      </div>
+      <div>
+        <p id="totalCarboidrato" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
+        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Carbo</p>
+      </div>
+      <div>
+        <p id="totalGordura" class="text-base sm:text-lg font-semibold text-slate-700 leading-tight">0 g</p>
+        <p class="text-[11px] sm:text-xs text-slate-400 uppercase tracking-wide">Gordura</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA DE ITENS DA REFEIÇÃO -->
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-5">
+    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Itens adicionados</h2>
+
+    <p id="estadoVazioRefeicao" class="text-sm text-slate-400 text-center py-10 border border-dashed border-slate-200 rounded-xl">
+      Nenhum alimento adicionado ainda.<br />
+      Toque no botão de busca 🔍 para começar.
+    </p>
+
+    <ul id="listaItensRefeicao" class="flex flex-col gap-2"></ul>
+  </main>
+
+  <!-- BOTÃO DE LUPA (fixo, destacado) -->
+  <button id="botaoAbrirBusca"
+    class="fixed bottom-6 right-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-colors z-20"
+    aria-label="Buscar alimento">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.35 4.35a7.5 7.5 0 0012.3 12.3z" />
+    </svg>
+  </button>
+
+  <!-- MODAL DE BUSCA -->
+  <div id="modalBusca" class="hidden fixed inset-0 bg-slate-900/50 z-30 items-center justify-center px-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden">
+
+      <!-- Cabeçalho do modal -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">Buscar alimento</h3>
+        <button id="botaoFecharModal" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Fechar busca">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Campo de busca -->
+      <div class="px-4 py-3 border-b border-slate-100">
+        <input
+          id="inputBusca"
+          type="text"
+          autofocus
+          placeholder="Ex: arroz, frango, banana..."
+          class="w-full bg-slate-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+        />
+      </div>
+
+      <!-- Formulário de peso (aparece após selecionar um alimento) -->
+      <div id="formularioPeso" class="hidden flex-col gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+        <p class="text-sm text-slate-600">
+          Peso de <span id="nomeAlimentoSelecionado" class="font-semibold text-slate-800"></span> (em gramas):
+        </p>
+        <div class="flex gap-2">
+          <input
+            id="inputPeso"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Ex: 150"
+            class="flex-1 bg-white border border-emerald-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+          />
+          <button
+            id="botaoAdicionarRefeicao"
+            disabled
+            class="opacity-50 cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-xl px-4 py-2 transition-colors whitespace-nowrap">
+            Adicionar
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de resultados -->
+      <ul id="listaResultadosBusca" class="overflow-y-auto flex-1"></ul>
+    </div>
+  </div>
+
+  <!-- Scripts: ordem importa (calculator -> meal -> search -> app) -->
+  <script src="./js/calculator.js"></script>
+  <script src="./js/meal.js"></script>
+  <script src="./js/search.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

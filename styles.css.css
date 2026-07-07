@@ -1,0 +1,37 @@
+/* styles.css
+   Customizações que o Tailwind CSS via CDN não cobre nativamente. */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+/* Transição suave para abertura/fechamento do modal de busca */
+#modalBusca {
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* Evita "salto" de layout quando o formulário de peso aparece */
+#formularioPeso {
+  animation: apareceSuave 0.15s ease-in-out;
+}
+
+@keyframes apareceSuave {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
